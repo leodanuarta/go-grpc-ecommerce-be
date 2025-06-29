@@ -50,9 +50,29 @@ func (sh *authHandler) Login(ctx context.Context, request *auth.LoginRequest) (*
 	return res, nil
 }
 
+func (sh *authHandler) Logout(ctx context.Context, request *auth.LogoutRequest) (*auth.LogoutResponse, error) {
+	validationError, err := utils.CheckValidation(request)
+	if err != nil {
+		return nil, err
+	}
+
+	if validationError != nil {
+		return &auth.LogoutResponse{
+			Base: utils.ValidationErrorResponse(validationError),
+		}, nil
+	}
+
+	// process register
+	res, err := sh.authService.Logout(ctx, request)
+	if err != nil {
+		return nil, err
+	}
+
+	return res, nil
+}
+
 type authHandler struct {
 	auth.UnimplementedAuthServiceServer
-
 	authService service.IAuthService
 }
 
