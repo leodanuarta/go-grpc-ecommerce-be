@@ -34,7 +34,7 @@ func (am *authMiddleware) AuthMiddleware(ctx context.Context, req any, info *grp
 	}
 
 	// sematkan entity ke context
-	claims.SetToContext(ctx)
+	ctx = claims.SetToContext(ctx)
 
 	response, err := handler(ctx, req)
 

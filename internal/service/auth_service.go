@@ -14,6 +14,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/types/known/timestamppb"
 
 	jwtEntity "github.com/leodanuarta/go-grpc-ecommerce-be/internal/entity/jwt"
 )
@@ -190,6 +191,39 @@ func (as *authService) ChangePassword(ctx context.Context, request *auth.ChangeP
 	// kirim response
 	return &auth.ChangePasswordResponse{
 		Base: utils.SuccessResponse("Chnage passoword success"),
+	}, nil
+
+}
+
+// GetProfile implements IAuthService.
+func (as *authService) GetProfile(ctx context.Context, request *auth.GetProfileRequest) (*auth.GetProfileResponse, error) {
+	// Get data token
+	claims, ok := ctx.Value(jwtEntity.JwtEntityContextKeyValue).(*jwtEntity.JwtClaims)
+	if !ok {
+		return nil, utils.UnauthenticatedResponse()
+	}
+
+	// Ambil data dari database
+	user, err := as.authRepository.GetUserByEmail(ctx, claims.Email)
+	if err != nil {
+		return nil, err
+	}
+
+	if user == nil {
+		return &auth.GetProfileResponse{
+			Base: utils.BadRequestResponse("user doesn't exists"),
+		}, nil
+	}
+
+	// Buat response
+
+	return &auth.GetProfileResponse{
+		Base:        utils.SuccessResponse("Get profile success"),
+		UserId:      claims.Subject,
+		FullName:    claims.FullName,
+		Email:       claims.Email,
+		RoleCode:    claims.Role,
+		MemberSince: timestamppb.New(user.CreatedAt),
 	}, nil
 
 }
