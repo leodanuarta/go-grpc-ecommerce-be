@@ -1,0 +1,5 @@
+<!-- GENERATE PROTO to buffer -->
+
+protoc --go_out=./pb --go-grpc_out=./pb --proto_path=./
+proto --go_opt=paths=source_relative --go-grpc_opt=paths=source_relative auth/auth.prot
+o
