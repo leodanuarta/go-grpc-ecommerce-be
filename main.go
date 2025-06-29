@@ -8,12 +8,12 @@ import (
 	"time"
 
 	"github.com/joho/godotenv"
+	"github.com/leodanuarta/go-grpc-ecommerce-be/internal/grpcmiddleware"
 	"github.com/leodanuarta/go-grpc-ecommerce-be/internal/handler"
 	"github.com/leodanuarta/go-grpc-ecommerce-be/internal/repository"
 	"github.com/leodanuarta/go-grpc-ecommerce-be/internal/service"
 	"github.com/leodanuarta/go-grpc-ecommerce-be/pb/auth"
 	"github.com/leodanuarta/go-grpc-ecommerce-be/pkg/database"
-	"github.com/leodanuarta/go-grpc-ecommerce-be/pkg/grpcmiddleware"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 
@@ -35,6 +35,9 @@ func main() {
 	log.Println("Connected to Database ...")
 
 	cacheService := gocache.New(time.Hour*24, time.Hour)
+
+	authMiddleware := grpcmiddleware.NewAuthMiddleware(cacheService)
+
 	authRepository := repository.NewAuthRepository(db)
 	authService := service.NewAuthService(authRepository, cacheService)
 	authHandler := handler.NewAuthHandler(authService)
@@ -42,6 +45,7 @@ func main() {
 	serv := grpc.NewServer(
 		grpc.ChainUnaryInterceptor(
 			grpcmiddleware.ErrorMiddleware,
+			authMiddleware.AuthMiddleware,
 		),
 	)
 

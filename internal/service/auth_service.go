@@ -3,23 +3,19 @@ package service
 import (
 	"context"
 	"errors"
-	"fmt"
 	"os"
-	"strings"
 	"time"
-
-	gocache "github.com/patrickmn/go-cache"
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"github.com/leodanuarta/go-grpc-ecommerce-be/internal/entity"
-	"github.com/leodanuarta/go-grpc-ecommerce-be/internal/repository"
 	"github.com/leodanuarta/go-grpc-ecommerce-be/internal/utils"
 	"github.com/leodanuarta/go-grpc-ecommerce-be/pb/auth"
 	"golang.org/x/crypto/bcrypt"
 	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
+
+	jwtEntity "github.com/leodanuarta/go-grpc-ecommerce-be/internal/entity/jwt"
 )
 
 func (as *authService) Register(ctx context.Context, request *auth.RegisterRequest) (*auth.RegisterResponse, error) {
@@ -92,7 +88,7 @@ func (as *authService) Login(ctx context.Context, request *auth.LoginRequest) (*
 
 	// generate jwt
 	now := time.Now()
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, entity.JwtClaims{
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwtEntity.JwtClaims{
 		RegisteredClaims: jwt.RegisteredClaims{
 			Subject:   user.Id,
 			ExpiresAt: jwt.NewNumericDate(now.Add(time.Hour * 24)),
@@ -120,78 +116,22 @@ func (as *authService) Login(ctx context.Context, request *auth.LoginRequest) (*
 // Logout implements IAuthService.
 func (as *authService) Logout(ctx context.Context, request *auth.LogoutRequest) (*auth.LogoutResponse, error) {
 	// dapatkan token dari metadata grpc
-	md, ok := metadata.FromIncomingContext(ctx)
-	if !ok {
-		return nil, status.Errorf(codes.Unauthenticated, "Unauthenticated")
+	jwtToken, err := jwtEntity.ParseTokenFromContext(ctx)
+	if err != nil {
+		return nil, err
 	}
-
-	bearerToken, ok := md["authorization"]
-	if !ok {
-		return nil, status.Errorf(codes.Unauthenticated, "Unauthenticated")
-	}
-
-	if len(bearerToken) == 0 {
-		return nil, status.Errorf(codes.Unauthenticated, "Unauthenticated")
-	}
-
-	tokenSplit := strings.Split(bearerToken[0], " ")
-
-	if len(tokenSplit) != 2 {
-		return nil, status.Errorf(codes.Unauthenticated, "Unauthenticated")
-	}
-
-	if tokenSplit[0] != "Bearer" {
-		return nil, status.Errorf(codes.Unauthenticated, "Unauthenticated")
-	}
-
-	jwtToken := tokenSplit[1]
 
 	// kembalikan token tadi hingga menjadi entity jwt
-	tokenClaims, err := jwt.ParseWithClaims(jwtToken, &entity.JwtClaims{}, func(t *jwt.Token) (interface{}, error) {
-		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, fmt.Errorf("unexpected signin method %v", t.Header["alg"])
-		}
-
-		return []byte(os.Getenv("JWT_SECRET")), nil
-	})
-
-	if !tokenClaims.Valid {
-		return nil, status.Errorf(codes.Unauthenticated, "Unauthenticated")
-	}
-
+	tokenClaims, err := jwtEntity.GetClaimsFromToken(jwtToken)
 	if err != nil {
-		return nil, status.Errorf(codes.Unauthenticated, "Unauthenticated")
-	}
-
-	var claims *entity.JwtClaims
-
-	if claims, ok = tokenClaims.Claims.(*entity.JwtClaims); !ok {
-		return nil, status.Errorf(codes.Unauthenticated, "Unauthenticated")
+		return nil, err
 	}
 
 	// kita masukkan token dari metadata ke dalam memori db / cache
-	as.cacheService.Set(jwtToken, "", time.Duration(claims.ExpiresAt.Time.Unix()-time.Now().Unix())*time.Second)
+	as.cacheService.Set(jwtToken, "", time.Duration(tokenClaims.ExpiresAt.Time.Unix()-time.Now().Unix())*time.Second)
 	// kirim response
 
 	return &auth.LogoutResponse{
 		Base: utils.SuccessResponse("Logout Successful"),
 	}, nil
-}
-
-type IAuthService interface {
-	Register(ctx context.Context, request *auth.RegisterRequest) (*auth.RegisterResponse, error)
-	Login(ctx context.Context, request *auth.LoginRequest) (*auth.LoginResponse, error)
-	Logout(ctx context.Context, request *auth.LogoutRequest) (*auth.LogoutResponse, error)
-}
-
-type authService struct {
-	authRepository repository.IAuthRepository
-	cacheService   *gocache.Cache
-}
-
-func NewAuthService(authRepository repository.IAuthRepository, cacheService *gocache.Cache) IAuthService {
-	return &authService{
-		authRepository: authRepository,
-		cacheService:   cacheService,
-	}
 }

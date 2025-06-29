@@ -3,7 +3,6 @@ package handler
 import (
 	"context"
 
-	"github.com/leodanuarta/go-grpc-ecommerce-be/internal/service"
 	"github.com/leodanuarta/go-grpc-ecommerce-be/internal/utils"
 	"github.com/leodanuarta/go-grpc-ecommerce-be/pb/auth"
 )
@@ -69,15 +68,4 @@ func (sh *authHandler) Logout(ctx context.Context, request *auth.LogoutRequest) 
 	}
 
 	return res, nil
-}
-
-type authHandler struct {
-	auth.UnimplementedAuthServiceServer
-	authService service.IAuthService
-}
-
-func NewAuthHandler(authService service.IAuthService) *authHandler {
-	return &authHandler{
-		authService: authService,
-	}
 }
