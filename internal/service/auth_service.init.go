@@ -12,6 +12,7 @@ type IAuthService interface {
 	Register(ctx context.Context, request *auth.RegisterRequest) (*auth.RegisterResponse, error)
 	Login(ctx context.Context, request *auth.LoginRequest) (*auth.LoginResponse, error)
 	Logout(ctx context.Context, request *auth.LogoutRequest) (*auth.LogoutResponse, error)
+	ChangePassword(ctx context.Context, request *auth.ChangePasswordRequest) (*auth.ChangePasswordResponse, error)
 }
 
 type authService struct {

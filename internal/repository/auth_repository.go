@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"time"
 
 	"github.com/leodanuarta/go-grpc-ecommerce-be/internal/entity"
 )
@@ -49,6 +50,23 @@ func (ar *authRepository) InsertUser(ctx context.Context, user *entity.User) err
 		user.DeletedAt,
 		user.DeletedBy,
 		user.IsDeleted,
+	)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (ar *authRepository) UpdateUserPassword(ctx context.Context, userid string, hashedNewPassword string, updatedBy string) error {
+	_, err := ar.db.ExecContext(
+		ctx,
+		"UPDATE \"user\" SET password = $1, updated_at = $2, updated_by = $3 WHERE id = $4",
+		hashedNewPassword,
+		time.Now(),
+		updatedBy,
+		userid,
 	)
 
 	if err != nil {

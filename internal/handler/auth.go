@@ -69,3 +69,23 @@ func (sh *authHandler) Logout(ctx context.Context, request *auth.LogoutRequest) 
 
 	return res, nil
 }
+
+func (sh *authHandler) ChangePassword(ctx context.Context, request *auth.ChangePasswordRequest) (*auth.ChangePasswordResponse, error) {
+	validationError, err := utils.CheckValidation(request)
+	if err != nil {
+		return nil, err
+	}
+
+	if validationError != nil {
+		return &auth.ChangePasswordResponse{
+			Base: utils.ValidationErrorResponse(validationError),
+		}, nil
+	}
+
+	res, err := sh.authService.ChangePassword(ctx, request)
+	if err != nil {
+		return nil, err
+	}
+
+	return res, nil
+}

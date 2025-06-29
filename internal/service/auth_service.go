@@ -135,3 +135,61 @@ func (as *authService) Logout(ctx context.Context, request *auth.LogoutRequest) 
 		Base: utils.SuccessResponse("Logout Successful"),
 	}, nil
 }
+
+// ChangePassword implements IAuthService.
+func (as *authService) ChangePassword(ctx context.Context, request *auth.ChangePasswordRequest) (*auth.ChangePasswordResponse, error) {
+	// Cek apakah new passwd confirmmation matched ?
+	if request.NewPassword != request.NewPasswordConfirmation {
+		return &auth.ChangePasswordResponse{
+			Base: utils.BadRequestResponse("New password is not matched"),
+		}, nil
+	}
+
+	// cek apakah old password matched ?
+	jwtToken, err := jwtEntity.ParseTokenFromContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	claims, err := jwtEntity.GetClaimsFromToken(jwtToken)
+	if err != nil {
+		return nil, err
+	}
+
+	user, err := as.authRepository.GetUserByEmail(ctx, claims.Email)
+	if err != nil {
+		return nil, err
+	}
+
+	if user == nil {
+		return &auth.ChangePasswordResponse{
+			Base: utils.BadRequestResponse("User doesn't exists"),
+		}, nil
+	}
+
+	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(request.OldPassword))
+	if err != nil {
+		if errors.Is(err, bcrypt.ErrMismatchedHashAndPassword) {
+			return &auth.ChangePasswordResponse{
+				Base: utils.BadRequestResponse("old password is not matched"),
+			}, nil
+		}
+	}
+
+	// Update new password ke database
+	hashedNewPassword, err := bcrypt.GenerateFromPassword([]byte(request.NewPassword), 10)
+	if err != nil {
+		return nil, err
+	}
+
+	err = as.authRepository.UpdateUserPassword(ctx, user.Id, string(hashedNewPassword), user.FullName)
+	if err != nil {
+		return nil, err
+	}
+
+	// kirim response
+	return &auth.ChangePasswordResponse{
+		Base: utils.SuccessResponse("Chnage passoword success"),
+	}, nil
+
+}
