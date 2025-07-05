@@ -2,6 +2,8 @@ package service
 
 import (
 	"context"
+	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/google/uuid"
@@ -22,6 +24,15 @@ func (ps *productService) CreateProduct(ctx context.Context, request *product.Cr
 		return nil, utils.UnauthenticatedResponse()
 	}
 	// apakah image nya ada ?
+	imagePath := filepath.Join("storage", "product", request.ImageFileName)
+	_, err = os.Stat(imagePath)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return &product.CreateProductResponse{
+				Base: utils.BadRequestResponse("file not found"),
+			}, nil
+		}
+	}
 
 	// insert ke database
 	productEntity := entity.Product{
