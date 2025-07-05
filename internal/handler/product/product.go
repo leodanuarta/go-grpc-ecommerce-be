@@ -48,3 +48,24 @@ func (ph *productHandler) DetailProduct(ctx context.Context, request *product.De
 
 	return res, nil
 }
+
+func (ph *productHandler) EditProduct(ctx context.Context, request *product.EditProductRequest) (*product.EditProductResponse, error) {
+	validationError, err := utils.CheckValidation(request)
+	if err != nil {
+		return nil, err
+	}
+
+	if validationError != nil {
+		return &product.EditProductResponse{
+			Base: utils.ValidationErrorResponse(validationError),
+		}, nil
+	}
+
+	// process register
+	res, err := ph.productService.EditProduct(ctx, request)
+	if err != nil {
+		return nil, err
+	}
+
+	return res, nil
+}

@@ -63,3 +63,32 @@ func (p *productRepository) GetProductById(ctx context.Context, id string) (*ent
 
 	return &productEntty, nil
 }
+
+// EditProduct implements IProductRepository.
+func (p *productRepository) UpdateProduct(ctx context.Context, product *entity.Product) error {
+	_, err := p.db.ExecContext(
+		ctx,
+		`UPDATE product SET
+			name=$1,
+			description=$2,
+			price=$3,
+			image_file_name=$4,
+			updated_at=$5,
+			updated_by=$6
+			WHERE id = $7
+			`,
+		product.Name,
+		product.Description,
+		product.Price,
+		product.ImageFileName,
+		product.UpdatedAt,
+		product.UpdatedBy,
+		product.Id,
+	)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
