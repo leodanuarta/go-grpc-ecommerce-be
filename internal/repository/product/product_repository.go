@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"time"
 
 	"github.com/leodanuarta/go-grpc-ecommerce-be/internal/entity"
 )
@@ -84,6 +85,27 @@ func (p *productRepository) UpdateProduct(ctx context.Context, product *entity.P
 		product.UpdatedAt,
 		product.UpdatedBy,
 		product.Id,
+	)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (p *productRepository) DeleteProduct(ctx context.Context, id string, deletedAt time.Time, deleteBy string) error {
+	_, err := p.db.ExecContext(
+		ctx,
+		`UPDATE product SET
+			deleted_at = $1,
+			deleted_by = $2,
+			is_deleted = true
+			WHERE id = $3
+			`,
+		deletedAt,
+		deleteBy,
+		id,
 	)
 
 	if err != nil {

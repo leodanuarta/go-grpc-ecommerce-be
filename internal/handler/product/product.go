@@ -69,3 +69,24 @@ func (ph *productHandler) EditProduct(ctx context.Context, request *product.Edit
 
 	return res, nil
 }
+
+func (ph *productHandler) DeleteProduct(ctx context.Context, request *product.DeleteProductRequest) (*product.DeleteProductResponse, error) {
+	validationError, err := utils.CheckValidation(request)
+	if err != nil {
+		return nil, err
+	}
+
+	if validationError != nil {
+		return &product.DeleteProductResponse{
+			Base: utils.ValidationErrorResponse(validationError),
+		}, nil
+	}
+
+	// process register
+	res, err := ph.productService.DeleteProduct(ctx, request)
+	if err != nil {
+		return nil, err
+	}
+
+	return res, nil
+}

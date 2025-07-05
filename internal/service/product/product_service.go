@@ -145,3 +145,41 @@ func (ps *productService) EditProduct(ctx context.Context, request *product.Edit
 		Id:   request.Id,
 	}, nil
 }
+
+// DeleteProduct implements IProductService.
+func (ps *productService) DeleteProduct(ctx context.Context, request *product.DeleteProductRequest) (*product.DeleteProductResponse, error) {
+	// cek dulu apakah user nya merupakan admin
+	claims, err := jwtEntity.GetClaimsFromContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if claims.Role != entity.UserRoleAdmin {
+		return nil, utils.UnauthenticatedResponse()
+	}
+	// validasi apakah id yang dikirim itu ada di db ?
+	productEntity, err := ps.productRepository.GetProductById(ctx, request.Id)
+	if err != nil {
+		return nil, err
+	}
+
+	if productEntity == nil {
+		return &product.DeleteProductResponse{
+			Base: utils.NotFoundResponse("Product not found"),
+		}, nil
+	}
+
+	err = ps.productRepository.DeleteProduct(ctx, request.Id, time.Now(), claims.FullName)
+	if err != nil {
+		return nil, err
+	}
+
+	imagePath := filepath.Join("storage", "product", productEntity.ImageFileName)
+	err = os.Remove(imagePath)
+	if err != nil {
+		return nil, err
+	}
+
+	return &product.DeleteProductResponse{
+		Base: utils.SuccessResponse("Delete product success"),
+	}, nil
+}

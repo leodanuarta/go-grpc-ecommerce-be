@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"database/sql"
+	"time"
 
 	"github.com/leodanuarta/go-grpc-ecommerce-be/internal/entity"
 )
@@ -11,6 +12,7 @@ type IProductRepository interface {
 	CreateNewProduct(ctx context.Context, product *entity.Product) error
 	GetProductById(ctx context.Context, id string) (*entity.Product, error)
 	UpdateProduct(ctx context.Context, product *entity.Product) error
+	DeleteProduct(ctx context.Context, id string, deletedAt time.Time, deleteBy string) error
 }
 
 type productRepository struct {
