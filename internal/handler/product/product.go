@@ -27,3 +27,24 @@ func (ph *productHandler) CreateProduct(ctx context.Context, request *product.Cr
 
 	return res, nil
 }
+
+func (ph *productHandler) DetailProduct(ctx context.Context, request *product.DetailProductRequest) (*product.DetailProductResponse, error) {
+	validationError, err := utils.CheckValidation(request)
+	if err != nil {
+		return nil, err
+	}
+
+	if validationError != nil {
+		return &product.DetailProductResponse{
+			Base: utils.ValidationErrorResponse(validationError),
+		}, nil
+	}
+
+	// process register
+	res, err := ph.productService.DetailProduct(ctx, request)
+	if err != nil {
+		return nil, err
+	}
+
+	return res, nil
+}

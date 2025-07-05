@@ -30,7 +30,7 @@ func main() {
 
 	godotenv.Load()
 
-	list, err := net.Listen("tcp", ":50052")
+	list, err := net.Listen("tcp", ":50053")
 	if err != nil {
 		log.Panicf("Error when listening %v", err)
 	}
@@ -65,7 +65,7 @@ func main() {
 		log.Println("Reflection is registered.")
 	}
 
-	log.Println("Server is running on port : 50052 port")
+	log.Println("Server is running on port : 50053 port")
 
 	if err := serv.Serve(list); err != nil {
 		log.Panicf("server is error : %v", err)

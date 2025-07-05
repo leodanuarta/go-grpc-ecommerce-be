@@ -2,6 +2,8 @@ package repository
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 
 	"github.com/leodanuarta/go-grpc-ecommerce-be/internal/entity"
 )
@@ -31,4 +33,33 @@ func (p *productRepository) CreateNewProduct(ctx context.Context, product *entit
 	}
 
 	return nil
+}
+
+func (p *productRepository) GetProductById(ctx context.Context, id string) (*entity.Product, error) {
+	var productEntty entity.Product
+	row := p.db.QueryRowContext(
+		ctx,
+		"SELECT id, name, description, price, image_file_name FROM product WHERE id = $1 AND is_deleted = false",
+		id,
+	)
+
+	if row.Err() != nil {
+		return nil, row.Err()
+	}
+
+	err := row.Scan(
+		&productEntty.Id,
+		&productEntty.Name,
+		&productEntty.Description,
+		&productEntty.Price,
+		&productEntty.ImageFileName,
+	)
+
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+	}
+
+	return &productEntty, nil
 }

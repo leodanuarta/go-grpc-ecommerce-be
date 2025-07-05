@@ -21,6 +21,9 @@ type JwtEntityContextKey string
 var JwtEntityContextKeyValue JwtEntityContextKey = "JwtEntity"
 
 func GetClaimsFromToken(token string) (*JwtClaims, error) {
+	// if token == "" {
+	// 	return nil, utils.UnauthenticatedResponse()
+	// }
 	tokenClaims, err := jwt.ParseWithClaims(token, &JwtClaims{}, func(t *jwt.Token) (interface{}, error) {
 		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signin method %v", t.Header["alg"])
@@ -29,11 +32,11 @@ func GetClaimsFromToken(token string) (*JwtClaims, error) {
 		return []byte(os.Getenv("JWT_SECRET")), nil
 	})
 
-	if !tokenClaims.Valid {
+	if err != nil {
 		return nil, utils.UnauthenticatedResponse()
 	}
 
-	if err != nil {
+	if !tokenClaims.Valid {
 		return nil, utils.UnauthenticatedResponse()
 	}
 

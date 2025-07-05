@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"path/filepath"
 	"time"
@@ -53,5 +54,30 @@ func (ps *productService) CreateProduct(ctx context.Context, request *product.Cr
 	return &product.CreateProductResponse{
 		Base: utils.SuccessResponse("Product is created"),
 		Id:   productEntity.Id,
+	}, nil
+}
+
+// DetailProduct implements IProductService.
+func (ps *productService) DetailProduct(ctx context.Context, request *product.DetailProductRequest) (*product.DetailProductResponse, error) {
+	// query ke db dengan data ID
+	productEntity, err := ps.productRepository.GetProductById(ctx, request.Id)
+	if err != nil {
+		return nil, err
+	}
+	// apabila null, kita return not found
+	if productEntity == nil {
+		return &product.DetailProductResponse{
+			Base: utils.NotFoundResponse("Product not Found"),
+		}, nil
+	}
+
+	// kirim respon detail
+	return &product.DetailProductResponse{
+		Base:        utils.SuccessResponse("Get product detail success"),
+		Id:          productEntity.Id,
+		Name:        productEntity.Name,
+		Price:       productEntity.Price,
+		Description: productEntity.Description,
+		ImageUrl:    fmt.Sprintf("%s/product/%s", os.Getenv("STORAGE_SERVICE_URL"), productEntity.ImageFileName),
 	}, nil
 }

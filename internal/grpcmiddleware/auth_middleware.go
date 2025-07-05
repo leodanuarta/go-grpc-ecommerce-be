@@ -2,6 +2,7 @@ package grpcmiddleware
 
 import (
 	"context"
+	"log"
 
 	jwtEntity "github.com/leodanuarta/go-grpc-ecommerce-be/internal/entity/jwt"
 	"github.com/leodanuarta/go-grpc-ecommerce-be/internal/utils"
@@ -11,7 +12,8 @@ import (
 )
 
 func (am *authMiddleware) AuthMiddleware(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp any, err error) {
-	if info.FullMethod == "/auth.AuthService/Login" || info.FullMethod == "/auth.AuthService/Register" {
+	log.Println(info.FullMethod)
+	if info.FullMethod == "/auth.AuthService/Login" || info.FullMethod == "/auth.AuthService/Register" || info.FullMethod == "/product.ProductService/DetailProduct" {
 		return handler(ctx, req)
 	}
 

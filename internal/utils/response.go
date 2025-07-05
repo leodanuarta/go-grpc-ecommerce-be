@@ -33,3 +33,11 @@ func BadRequestResponse(msg string) *common.BaseResponse {
 func UnauthenticatedResponse() error {
 	return status.Errorf(codes.Unauthenticated, "Unauthenticated")
 }
+
+func NotFoundResponse(msg string) *common.BaseResponse {
+	return &common.BaseResponse{
+		StatusCode: 404,
+		IsError:    true,
+		Message:    msg,
+	}
+}
