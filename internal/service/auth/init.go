@@ -3,9 +3,8 @@ package service
 import (
 	"context"
 
-	"github.com/leodanuarta/go-grpc-ecommerce-be/internal/repository"
+	repository "github.com/leodanuarta/go-grpc-ecommerce-be/internal/repository/auth"
 	"github.com/leodanuarta/go-grpc-ecommerce-be/pb/auth"
-	"github.com/leodanuarta/go-grpc-ecommerce-be/pb/product"
 	gocache "github.com/patrickmn/go-cache"
 )
 
@@ -26,19 +25,5 @@ func NewAuthService(authRepository repository.IAuthRepository, cacheService *goc
 	return &authService{
 		authRepository: authRepository,
 		cacheService:   cacheService,
-	}
-}
-
-type IProductService interface {
-	CreateProduct(ctx context.Context, request *product.CreateProductRequest) (*product.CreateProductResponse, error)
-}
-
-type productService struct {
-	productRepository repository.IProductRepository
-}
-
-func NewProductService(productRepository repository.IProductRepository) IProductService {
-	return &productService{
-		productRepository: productRepository,
 	}
 }

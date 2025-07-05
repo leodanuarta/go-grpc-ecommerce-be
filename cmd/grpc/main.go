@@ -9,9 +9,12 @@ import (
 
 	"github.com/joho/godotenv"
 	"github.com/leodanuarta/go-grpc-ecommerce-be/internal/grpcmiddleware"
-	"github.com/leodanuarta/go-grpc-ecommerce-be/internal/handler"
-	"github.com/leodanuarta/go-grpc-ecommerce-be/internal/repository"
-	"github.com/leodanuarta/go-grpc-ecommerce-be/internal/service"
+	handlerAuth "github.com/leodanuarta/go-grpc-ecommerce-be/internal/handler/auth"
+	handlerProduct "github.com/leodanuarta/go-grpc-ecommerce-be/internal/handler/product"
+	repositoryAuth "github.com/leodanuarta/go-grpc-ecommerce-be/internal/repository/auth"
+	repositoryProduct "github.com/leodanuarta/go-grpc-ecommerce-be/internal/repository/product"
+	serviceAuth "github.com/leodanuarta/go-grpc-ecommerce-be/internal/service/auth"
+	serviceProduct "github.com/leodanuarta/go-grpc-ecommerce-be/internal/service/product"
 	"github.com/leodanuarta/go-grpc-ecommerce-be/pb/auth"
 	"github.com/leodanuarta/go-grpc-ecommerce-be/pb/product"
 	"github.com/leodanuarta/go-grpc-ecommerce-be/pkg/database"
@@ -39,13 +42,13 @@ func main() {
 
 	authMiddleware := grpcmiddleware.NewAuthMiddleware(cacheService)
 
-	authRepository := repository.NewAuthRepository(db)
-	authService := service.NewAuthService(authRepository, cacheService)
-	authHandler := handler.NewAuthHandler(authService)
+	authRepository := repositoryAuth.NewAuthRepository(db)
+	authService := serviceAuth.NewAuthService(authRepository, cacheService)
+	authHandler := handlerAuth.NewAuthHandler(authService)
 
-	productRepository := repository.NewProductRepository(db)
-	productService := service.NewProductService(productRepository)
-	productHandler := handler.NewProductHandler(productService)
+	productRepository := repositoryProduct.NewProductRepository(db)
+	productService := serviceProduct.NewProductService(productRepository)
+	productHandler := handlerProduct.NewProductHandler(productService)
 
 	serv := grpc.NewServer(
 		grpc.ChainUnaryInterceptor(
