@@ -12,6 +12,7 @@ type IProductService interface {
 	DetailProduct(ctx context.Context, request *product.DetailProductRequest) (*product.DetailProductResponse, error)
 	EditProduct(ctx context.Context, request *product.EditProductRequest) (*product.EditProductResponse, error)
 	DeleteProduct(ctx context.Context, request *product.DeleteProductRequest) (*product.DeleteProductResponse, error)
+	ListProduct(ctx context.Context, request *product.ListProductRequest) (*product.ListProductResponse, error)
 }
 
 type productService struct {

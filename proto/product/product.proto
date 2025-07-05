@@ -2,6 +2,7 @@ syntax = "proto3";
 
 option go_package = "/product";
 
+import "common/pagination.proto";
 import "common/base_response.proto";
 import "buf/validate/validate.proto";
 
@@ -12,6 +13,7 @@ service ProductService{
   rpc DetailProduct(DetailProductRequest) returns (DetailProductResponse);
   rpc EditProduct(EditProductRequest) returns (EditProductResponse);
   rpc DeleteProduct(DeleteProductRequest) returns (DeleteProductResponse);
+  rpc ListProduct(ListProductRequest) returns (ListProductResponse);
 }
 
 message CreateProductRequest{
@@ -58,4 +60,22 @@ message DeleteProductRequest{
 
 message DeleteProductResponse{
   common.BaseResponse base = 1;
+}
+
+message ListProductRequest{
+  common.PaginationRequest pagination = 1;
+}
+
+message ListProductItem{
+  string id =1;
+  string name=2;
+  string description=3;
+  double price=4;
+  string image_url= 5;
+}
+
+message ListProductResponse{
+  common.BaseResponse base = 1;
+  common.PaginationResponse pagination = 2;
+  repeated ListProductItem data =3;
 }

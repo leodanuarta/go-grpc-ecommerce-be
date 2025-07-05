@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/leodanuarta/go-grpc-ecommerce-be/internal/entity"
+	"github.com/leodanuarta/go-grpc-ecommerce-be/pb/common"
 )
 
 // CreateNewProduct implements IProductRepository.
@@ -113,4 +114,63 @@ func (p *productRepository) DeleteProduct(ctx context.Context, id string, delete
 	}
 
 	return nil
+}
+
+func (p *productRepository) GetProductPagination(ctx context.Context, pagination *common.PaginationRequest) ([]*entity.Product, *common.PaginationResponse, error) {
+	offset := (pagination.CurrentPage - 1) * pagination.ItemPerPage
+
+	row := p.db.QueryRowContext(ctx, "SELECT COUNT(*) FROM product WHERE is_deleted = false")
+	if row.Err() != nil {
+		return nil, nil, row.Err()
+	}
+
+	var totalCount int
+	err := row.Scan(&totalCount)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	totalPages := (totalCount + int(pagination.ItemPerPage) - 1) / int(pagination.ItemPerPage)
+
+	rows, err := p.db.QueryContext(
+		ctx,
+		`SELECT id, name, description, price, image_file_name
+			FROM product
+			WHERE is_deleted = false
+			ORDER BY created_at DESC
+			LIMIT $1 OFFSET $2
+			`,
+		pagination.ItemPerPage,
+		offset,
+	)
+
+	if err != nil {
+		return nil, nil, err
+	}
+
+	var products []*entity.Product = make([]*entity.Product, 0)
+	for rows.Next() {
+		var product entity.Product
+
+		err := rows.Scan(&product.Id,
+			&product.Name,
+			&product.Description,
+			&product.Price,
+			&product.ImageFileName,
+		)
+
+		if err != nil {
+			return nil, nil, err
+		}
+
+		products = append(products, &product)
+	}
+
+	paginationResp := &common.PaginationResponse{
+		CurrentPage:    pagination.CurrentPage,
+		ItemPerPage:    pagination.ItemPerPage,
+		TotalItemCount: int32(totalCount),
+		TotalPageCount: int32(totalPages),
+	}
+	return products, paginationResp, err
 }

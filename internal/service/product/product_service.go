@@ -183,3 +183,28 @@ func (ps *productService) DeleteProduct(ctx context.Context, request *product.De
 		Base: utils.SuccessResponse("Delete product success"),
 	}, nil
 }
+
+// ListProduct implements IProductService.
+func (ps *productService) ListProduct(ctx context.Context, request *product.ListProductRequest) (*product.ListProductResponse, error) {
+	products, pagination, err := ps.productRepository.GetProductPagination(ctx, request.Pagination)
+	if err != nil {
+		return nil, err
+	}
+
+	var data []*product.ListProductItem = make([]*product.ListProductItem, 0)
+	for _, prod := range products {
+		data = append(data, &product.ListProductItem{
+			Id:          prod.Id,
+			Name:        prod.Name,
+			Description: prod.Description,
+			Price:       prod.Price,
+			ImageUrl:    fmt.Sprintf("%s/products/%s", os.Getenv("STORAGE_SERVICE_URL"), prod.ImageFileName),
+		})
+	}
+
+	return &product.ListProductResponse{
+		Base:       utils.SuccessResponse("Get list product success"),
+		Data:       data,
+		Pagination: pagination,
+	}, nil
+}

@@ -90,3 +90,24 @@ func (ph *productHandler) DeleteProduct(ctx context.Context, request *product.De
 
 	return res, nil
 }
+
+func (ph *productHandler) ListProduct(ctx context.Context, request *product.ListProductRequest) (*product.ListProductResponse, error) {
+	validationError, err := utils.CheckValidation(request)
+	if err != nil {
+		return nil, err
+	}
+
+	if validationError != nil {
+		return &product.ListProductResponse{
+			Base: utils.ValidationErrorResponse(validationError),
+		}, nil
+	}
+
+	// process register
+	res, err := ph.productService.ListProduct(ctx, request)
+	if err != nil {
+		return nil, err
+	}
+
+	return res, nil
+}

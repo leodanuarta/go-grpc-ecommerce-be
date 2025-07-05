@@ -2,6 +2,7 @@ package grpcmiddleware
 
 import (
 	"context"
+	"log"
 
 	jwtEntity "github.com/leodanuarta/go-grpc-ecommerce-be/internal/entity/jwt"
 	"github.com/leodanuarta/go-grpc-ecommerce-be/internal/utils"
@@ -10,8 +11,18 @@ import (
 	gocache "github.com/patrickmn/go-cache"
 )
 
+var publicApis = map[string]bool{
+	"/auth.AuthService/Login":               true,
+	"/auth.AuthService/Register":            true,
+	"/product.ProductService/DetailProduct": true,
+	"/product.ProductService/ListProduct":   true,
+}
+
 func (am *authMiddleware) AuthMiddleware(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp any, err error) {
-	if info.FullMethod == "/auth.AuthService/Login" || info.FullMethod == "/auth.AuthService/Register" || info.FullMethod == "/product.ProductService/DetailProduct" {
+
+	log.Println(info.FullMethod)
+
+	if publicApis[info.FullMethod] {
 		return handler(ctx, req)
 	}
 
