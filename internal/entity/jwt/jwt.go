@@ -48,3 +48,17 @@ func (jc *JwtClaims) SetToContext(ctx context.Context) context.Context {
 	return context.WithValue(ctx, JwtEntityContextKeyValue, jc)
 
 }
+
+func GetClaimsFromContext(ctx context.Context) (*JwtClaims, error) {
+	token, err := ParseTokenFromContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	claims, err := GetClaimsFromToken(token)
+	if err != nil {
+		return nil, err
+	}
+
+	return claims, nil
+}

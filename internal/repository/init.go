@@ -12,12 +12,27 @@ type IAuthRepository interface {
 	InsertUser(ctx context.Context, user *entity.User) error
 	UpdateUserPassword(ctx context.Context, userid string, hashedNewPassword string, updatedBy string) error
 }
+
 type authRepository struct {
 	db *sql.DB
 }
 
 func NewAuthRepository(db *sql.DB) IAuthRepository {
 	return &authRepository{
+		db: db,
+	}
+}
+
+type IProductRepository interface {
+	CreateNewProduct(ctx context.Context, product *entity.Product) error
+}
+
+type productRepository struct {
+	db *sql.DB
+}
+
+func NewProductRepository(db *sql.DB) IProductRepository {
+	return &productRepository{
 		db: db,
 	}
 }
